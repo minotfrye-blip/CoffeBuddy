@@ -1321,13 +1321,14 @@
             const sizes = { '350': { water: 350, coffee: 21 }, '400': { water: 400, coffee: 24 }, '450': { water: 450, coffee: 27 } };
             const s = sizes[sizeStr];
             const steepSec = Math.round((bean.steepMin || 2) * 60);
-            const drainSec = 30; // Hoffmann default; derived from recipe
 
-            // Build step sequence
+            // Correct Hoffmann Clever Dripper sequence:
+            // Pour water → add coffee, stir → steep → stir at 2:00 → 30s more steep → drain (passive)
             const steps = [
                 { phase: 'Steep', duration: steepSec, instruction: `Pour <strong>${s.water}g</strong> water, add <strong>${s.coffee}g</strong> coffee, stir and start` },
                 { phase: 'Stir', duration: 0, instruction: 'Stir again now', action: true },
-                { phase: 'Drain', duration: drainSec, instruction: 'Place Clever on cup to drain' },
+                { phase: 'Wait', duration: 30, instruction: 'Wait 30 more seconds' },
+                { phase: 'Drain', duration: 0, instruction: 'Place Clever on cup and drain', action: true },
                 { phase: 'Done', duration: 0, instruction: 'Swirl, sip, enjoy ☕', done: true },
             ];
 
@@ -1343,6 +1344,9 @@
             saveBeans();
 
             _timerState = { bean, sizeStr, steps, stepIdx: 0, secondsLeft: steepSec, totalSeconds: steepSec, interval: null, logEntry };
+
+            // Request wake lock so screen stays on during brew
+            requestWakeLock();
 
             // Set up timer UI
             document.getElementById('timer-bean-name').textContent = bean.name;
@@ -1377,7 +1381,8 @@
             if (step.action) {
                 dispEl.textContent = '↻';
                 dispEl.className = 'timer-display urgent';
-                document.getElementById('timer-action-btn').textContent = 'Stirred — Start Drain';
+                const isStir = step.phase === 'Stir';
+                document.getElementById('timer-action-btn').textContent = isStir ? 'Stirred — Continue' : 'Placed on Cup';
                 document.getElementById('timer-action-btn').disabled = false;
                 return;
             }
@@ -1461,6 +1466,31 @@
             }
         }
 
+        // ── Wake Lock ─────────────────────────────────────────────────────────
+        let _wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    _wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch(e) {}
+        }
+
+        function releaseWakeLock() {
+            if (_wakeLock) {
+                _wakeLock.release().catch(() => {});
+                _wakeLock = null;
+            }
+        }
+
+        // Re-acquire wake lock if page becomes visible again (e.g. tab switch)
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && _timerState && _timerState.interval) {
+                await requestWakeLock();
+            }
+        });
+
         function confirmCloseTimer() {
             if (_timerState && _timerState.interval) {
                 if (!confirm('Cancel this brew? The brew will still be logged.')) return;
@@ -1469,6 +1499,7 @@
         }
 
         function closeTimer() {
+            releaseWakeLock();
             if (_timerState) {
                 clearInterval(_timerState.interval);
                 // Show recipe card with updated brew history
