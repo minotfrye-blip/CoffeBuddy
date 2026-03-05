@@ -483,7 +483,7 @@
         // ── CONFIGURE THIS ──────────────────────────────────────
         // After deploying your Cloudflare Worker, paste the URL here.
         // It will look like: https://coffee-scanner.YOUR-SUBDOMAIN.workers.dev
-        const SCANNER_WORKER_URL = "https://coffee-scanner.minotfrye.workers.dev";
+        const SCANNER_WORKER_URL = "https://coffee-scanner.YOUR-SUBDOMAIN.workers.dev";
         // ────────────────────────────────────────────────────────
 
         window.onload = function() {
@@ -544,9 +544,10 @@
                     })
                 });
 
-                if (!response.ok) throw new Error('Scanner returned ' + response.status);
                 const parsed = await response.json();
-                if (parsed.error) throw new Error(parsed.error);
+                if (!response.ok || parsed.error) {
+                    throw new Error(parsed.error || parsed.details?.error?.message || 'Scanner returned ' + response.status);
+                }
 
                 if (parsed.name) { document.getElementById('bean-name').value = parsed.name; document.getElementById('bean-name').classList.add('scan-filled'); }
                 if (parsed.roastLevel) { document.getElementById('roast-level').value = parsed.roastLevel; document.getElementById('roast-level').classList.add('scan-filled'); }
@@ -559,7 +560,7 @@
                 zone.classList.remove('scanning');
             } catch (err) {
                 console.error('Scan error:', err);
-                statusText.innerHTML = '&#x26A0;&#xFE0F; Could not read the bag. Fill in details manually below.';
+                statusText.innerHTML = '&#x26A0;&#xFE0F; ' + err.message + '<br><small style="opacity:0.6;">Fill in details manually below.</small>';
                 zone.classList.remove('scanning');
                 document.getElementById('manual-fields').style.display = 'block';
                 document.getElementById('manual-toggle-btn').innerHTML = 'enter manually &#x25B4;';
