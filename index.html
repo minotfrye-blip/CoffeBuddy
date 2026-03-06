@@ -468,6 +468,30 @@
             color: var(--gold-light); min-width: 28px; text-align: right;
         }
 
+        /* Grind change callout */
+        .grind-callout {
+            display: flex; align-items: flex-start; gap: 10px;
+            background: rgba(240,165,0,0.08);
+            border: 1px solid rgba(240,165,0,0.22);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            margin: 6px 0 2px;
+        }
+        .grind-callout-icon {
+            font-size: 13px; flex-shrink: 0; margin-top: 1px;
+        }
+        .grind-callout-text {
+            font-family: var(--font-mono); font-size: 11px;
+            color: var(--gold-light); line-height: 1.5;
+        }
+        .grind-callout-text strong { color: var(--gold); }
+
+        /* Recipe grind last-updated line */
+        .grind-last-updated {
+            font-family: var(--font-mono); font-size: 11px;
+            color: var(--white-dim); margin-top: 4px; line-height: 1.5;
+        }
+
         /* Brew Now Button */
         .brew-now-btn {
             display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -1012,7 +1036,16 @@
                     </div>
                     <div class="recipe-detail"><span class="recipe-label">Coffee</span><span class="recipe-value">${s.coffee}g</span></div>
                     <div class="recipe-detail"><span class="recipe-label">Water</span><span class="recipe-value">${s.water}g</span></div>
-                    <div class="recipe-detail"><span class="recipe-label">Oxo Grind</span><span class="recipe-value">${bean.grindSetting}</span></div>
+                    <div class="recipe-detail" style="flex-direction:column; gap:6px;">
+                        <div style="display:flex; justify-content:space-between; width:100%;">
+                            <span class="recipe-label">Oxo Grind</span><span class="recipe-value">${bean.grindSetting}</span>
+                        </div>
+                        ${bean.grindPrev && bean.grindPrev !== bean.grindSetting ? `<div class="grind-callout">
+                            <span class="grind-callout-icon">&#x2197;</span>
+                            <span class="grind-callout-text"><strong>Grind updated: ${bean.grindPrev} &rarr; ${bean.grindSetting}</strong> (${bean.grindSetting > bean.grindPrev ? 'coarser' : 'finer'})${bean.grindLastUpdated ? ' after ' + new Date(bean.grindLastUpdated).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : ''}</span>
+                        </div>` : ''}
+                        ${bean.grindLastUpdated ? `<div class="grind-last-updated">Updated ${new Date(bean.grindLastUpdated).toLocaleDateString('en-US', {month:'short', day:'numeric'})}${bean.grindLastReason ? ': ' + bean.grindLastReason : ''}</div>` : ''}
+                    </div>
                     <div class="recipe-detail"><span class="recipe-label">Water Temp</span><span class="recipe-value">${bean.tempRec}</span></div>
                     <div class="recipe-detail" style="border-bottom:none;"><span class="recipe-label">Steep Time</span><span class="recipe-value">${steepDisplay}</span></div>
                     ${bean.recipeNote ? `<div style="margin-top:16px; padding:14px 16px; background:var(--navy); border-radius:var(--radius-md); border-left:3px solid var(--gold);"><p style="font-family:var(--font-body); font-size:13px; color:var(--white-muted); line-height:1.6; font-style:italic;">${bean.recipeNote}</p></div>` : ''}
@@ -1226,12 +1259,21 @@
             log.adjustments = adj;
 
             // Apply grind update if recommended
-            if (adj.newGrind !== null && adj.newGrind !== bean.grindSetting) {
+            const grindChanged = adj.newGrind !== null && adj.newGrind !== bean.grindSetting;
+            if (grindChanged) {
                 bean.grindSetting = parseFloat(adj.newGrind.toFixed(2));
+                bean.grindLastUpdated = new Date().toISOString();
+                bean.grindLastReason = adj.rationale || null;
+                bean.grindPrev = grindBefore;
+            } else {
+                // No change this session -- clear the pending callout
+                bean.grindPrev = null;
             }
             saveBeans();
+            // BB-001: renderBeansList after saveBeans, using the already-mutated in-memory bean
+            renderBeansList();
 
-            // Re-render the recipe card to show updated history
+            // Re-render the recipe card to show updated grind callout + history
             showRecipe(bean);
             // Re-open the history panel
             setTimeout(() => {
@@ -1702,9 +1744,15 @@
             log.notes = notes;
             log.adjustments = adj;
             if (adj.newGrind !== null && adj.newGrind !== bean.grindSetting) {
+                bean.grindPrev = bean.grindSetting;
                 bean.grindSetting = parseFloat(adj.newGrind.toFixed(2));
+                bean.grindLastUpdated = new Date().toISOString();
+                bean.grindLastReason = adj.rationale || null;
+            } else {
+                bean.grindPrev = null;
             }
             saveBeans();
+            renderBeansList();
             renderUnifiedHistory();
             renderStats();
         }
