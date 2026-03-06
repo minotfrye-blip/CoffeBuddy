@@ -800,7 +800,7 @@
 
                 const response = await fetch(WORKER_URL + '/scan', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Client-Token': 'f3efc2f59ed97762b377790eb13940deeb531e4cd6472c5d40145e2ac221b8f9' },
                     body: JSON.stringify({
                         image: base64Data,
                         media_type: mediaType
@@ -943,7 +943,7 @@
             try {
                 const response = await fetch(WORKER_URL + '/generate-recipe', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Client-Token': 'f3efc2f59ed97762b377790eb13940deeb531e4cd6472c5d40145e2ac221b8f9' },
                     body: JSON.stringify({ bean: partialBean })
                 });
                 const data = await response.json();
@@ -1116,7 +1116,7 @@
             try {
                 const response = await fetch(WORKER_URL + '/analyze-brew', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Client-Token': 'f3efc2f59ed97762b377790eb13940deeb531e4cd6472c5d40145e2ac221b8f9' },
                     body: JSON.stringify({ bean, ratio, notes })
                 });
                 const data = await response.json();
