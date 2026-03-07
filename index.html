@@ -577,6 +577,37 @@
         .timer-action-btn:hover { box-shadow: 0 6px 32px rgba(240,165,0,0.45); }
         .timer-action-btn:disabled { background: var(--navy-light); color: var(--white-dim); box-shadow: none; cursor: not-allowed; }
 
+        /* Drain choice buttons */
+        .drain-choice { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .drain-choice-btn {
+            width: 100%; padding: 14px 20px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-display); font-size: 14px; font-weight: 600;
+            letter-spacing: 0.03em; cursor: pointer; transition: all 0.15s ease;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .drain-choice-btn.primary {
+            background: var(--gold); color: var(--navy); border: none;
+            box-shadow: 0 4px 24px rgba(240,165,0,0.35);
+        }
+        .drain-choice-btn.primary:hover { box-shadow: 0 6px 32px rgba(240,165,0,0.45); }
+        .drain-choice-btn.secondary {
+            background: transparent; color: var(--gold);
+            border: 1.5px solid var(--gold);
+        }
+        .drain-choice-btn.secondary:hover { background: var(--gold-subtle); }
+        .drain-choice-btn small {
+            font-family: var(--font-mono); font-size: 10px; font-weight: 400;
+            opacity: 0.7; letter-spacing: 0.04em;
+        }
+
+        /* Drain result display */
+        .drain-result {
+            font-family: var(--font-mono); font-size: 13px;
+            color: var(--gold-light); text-align: center;
+            padding: 8px 0 0; letter-spacing: 0.04em;
+        }
+
         /* Add Notes to existing brew log entry */
         .brew-log-no-notes { font-family: var(--font-mono); font-size: 11px; color: var(--white-dim); font-style: italic; margin-bottom: 6px; }
         .brew-log-add-notes textarea { width: 100%; padding: 10px 12px; font-size: 13px; min-height: 60px; margin-bottom: 8px; }
@@ -778,6 +809,7 @@
         </div>
         <div class="timer-footer">
             <button class="timer-action-btn" id="timer-action-btn" onclick="timerAction()">Start Timer</button>
+            <div id="timer-footer-extra"></div>
         </div>
     </div>
 
@@ -1185,12 +1217,12 @@
             }
         }
 
-        async function getAdjustments(notes, bean, ratio) {
+        async function getAdjustments(notes, bean, ratio, drainTimeSec) {
             try {
                 const response = await fetch(WORKER_URL + '/analyze-brew', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-Client-Token': 'f3efc2f59ed97762b377790eb13940deeb531e4cd6472c5d40145e2ac221b8f9' },
-                    body: JSON.stringify({ bean, ratio, notes })
+                    body: JSON.stringify({ bean, ratio, notes, drainTimeSec: drainTimeSec ?? null })
                 });
                 const data = await response.json();
                 if (!response.ok || data.error) throw new Error(data.error || 'Worker error');
@@ -1256,6 +1288,7 @@
                         <span class="brew-log-date">${dateStr} &middot; ${log.ratio || ''}</span>
                         <div class="brew-log-meta-right">
                             <span class="brew-log-grind">grind ${log.grindUsed}</span>
+                            ${log.drainTimeSec != null ? `<span class="brew-log-grind" style="background:rgba(80,200,120,0.08); border-color:rgba(80,200,120,0.2); color:rgba(80,200,120,0.8);">drain ${log.drainTimeSec}s</span>` : ''}
                             <button class="brew-log-delete-btn" onclick="deleteBrewLog(${bean.id}, ${actualIdx})" title="Delete entry">&times;</button>
                         </div>
                     </div>
@@ -1336,7 +1369,7 @@
             // Temporarily set grindSetting to log.grindUsed so AI reasons from correct baseline
             const savedGrind = bean.grindSetting;
             bean.grindSetting = log.grindUsed;
-            const adj = await getAdjustments(notes, bean, log.ratio || '24/400');
+            const adj = await getAdjustments(notes, bean, log.ratio || '24/400', log.drainTimeSec ?? null);
             bean.grindSetting = savedGrind;
 
             log.notes = notes;
@@ -1378,7 +1411,7 @@
             if (btn) { btn.textContent = 'Analyzing...'; btn.disabled = true; }
 
             const grindBefore = log.grindUsed;
-            const adj = await getAdjustments(notes, bean, log.ratio || '24/400');
+            const adj = await getAdjustments(notes, bean, log.ratio || '24/400', log.drainTimeSec ?? null);
 
             log.notes = notes;
             log.adjustments = adj;
@@ -1470,7 +1503,7 @@
                 { phase: 'Steep', duration: steepSec, instruction: `Pour <strong>${water}g</strong> water, add <strong>${coffee}g</strong> coffee, stir and start` },
                 { phase: 'Stir', duration: 0, instruction: 'Stir again now', action: true },
                 { phase: 'Wait', duration: 30, instruction: 'Wait 30 more seconds' },
-                { phase: 'Drain', duration: 0, instruction: 'Place Clever on cup and drain', action: true },
+                { phase: 'Drain', duration: 0, instruction: 'Place Clever on cup to drain', drainChoice: true },
                 { phase: 'Done', duration: 0, instruction: 'Swirl, sip, enjoy ☕', done: true },
             ];
 
@@ -1480,12 +1513,13 @@
                 ratio: `${coffee}/${water}`,
                 grindUsed: bean.grindSetting,
                 notes: null,
-                adjustments: null
+                adjustments: null,
+                drainTimeSec: null
             };
             bean.brewLogs.push(logEntry);
             saveBeans();
 
-            _timerState = { bean, sizeStr, steps, stepIdx: 0, totalSeconds: steepSec, stepStartTime: null, interval: null, logEntry };
+            _timerState = { bean, sizeStr, steps, stepIdx: 0, totalSeconds: steepSec, stepStartTime: null, interval: null, logEntry, drainStartTime: null, drainInterval: null };
 
             // Request wake lock so screen stays on during brew
             requestWakeLock();
@@ -1522,8 +1556,49 @@
                 document.getElementById('timer-progress').style.width = '100%';
                 document.getElementById('timer-action-btn').textContent = 'Done — Add Notes Later';
                 document.getElementById('timer-action-btn').disabled = false;
+                document.getElementById('timer-action-btn').style.display = 'block';
+                document.getElementById('timer-footer-extra').innerHTML = '';
                 document.getElementById('timer-overlay').classList.remove('strobe');
                 renderBeansList(); 
+                return;
+            }
+            if (step.drainChoice) {
+                // Drain step -- show two-button choice or running stopwatch
+                document.getElementById('timer-action-btn').style.display = 'none';
+                document.getElementById('timer-phase').textContent = step.phase;
+                document.getElementById('timer-instruction').innerHTML = step.instruction;
+                document.getElementById('timer-overlay').classList.remove('strobe');
+
+                if (_timerState.drainStartTime !== null) {
+                    // Stopwatch running
+                    const elapsed = Math.floor((Date.now() - _timerState.drainStartTime) / 1000);
+                    dispEl.textContent = formatSeconds(elapsed);
+                    dispEl.className = 'timer-display urgent';
+                    document.getElementById('timer-footer-extra').innerHTML = `
+                        <button class="timer-action-btn" style="display:block;" onclick="stopDrainTimer()">Stop Timer</button>`;
+                } else if (_timerState._drainTimedResult !== undefined) {
+                    // Just stopped, show result briefly before advancing
+                    dispEl.textContent = formatSeconds(_timerState._drainTimedResult);
+                    dispEl.className = 'timer-display done';
+                    document.getElementById('timer-footer-extra').innerHTML = `
+                        <div class="drain-result">Drained in ${_timerState._drainTimedResult}s</div>
+                        <button class="timer-action-btn" style="display:block; margin-top:10px;" onclick="advanceFromDrain()">Continue</button>`;
+                } else {
+                    // Initial choice
+                    dispEl.textContent = '↓';
+                    dispEl.className = 'timer-display urgent';
+                    document.getElementById('timer-footer-extra').innerHTML = `
+                        <div class="drain-choice">
+                            <button class="drain-choice-btn primary" onclick="drainAndDone()">
+                                <span>Drain &amp; Done</span>
+                                <small>no stopwatch</small>
+                            </button>
+                            <button class="drain-choice-btn secondary" onclick="drainAndTimeIt()">
+                                <span>Drain &amp; Time It</span>
+                                <small>starts stopwatch</small>
+                            </button>
+                        </div>`;
+                }
                 return;
             }
             if (step.action) {
@@ -1531,8 +1606,10 @@
                 dispEl.className = 'timer-display urgent';
                 document.getElementById('timer-overlay').classList.remove('strobe');
                 const isStir = step.phase === 'Stir';
+                document.getElementById('timer-action-btn').style.display = 'block';
                 document.getElementById('timer-action-btn').textContent = isStir ? 'Stirred — Continue' : 'Placed on Cup';
                 document.getElementById('timer-action-btn').disabled = false;
+                document.getElementById('timer-footer-extra').innerHTML = '';
                 return;
             }
 
@@ -1550,6 +1627,8 @@
             }
 
             const btn = document.getElementById('timer-action-btn');
+            btn.style.display = 'block';
+            document.getElementById('timer-footer-extra').innerHTML = '';
             if (_timerState.interval) {
                 btn.textContent = 'Running...';
                 btn.disabled = true;
@@ -1573,7 +1652,7 @@
                 dot.className = 'timer-step-dot' + (i < _timerState.stepIdx ? ' done' : i === _timerState.stepIdx ? ' active' : '');
             });
 
-            if (step.action || step.done) {
+            if (step.action || step.done || step.drainChoice) {
                 _timerState.stepStartTime = null;
                 _timerState.totalSeconds = 0;
                 renderTimerStep();
@@ -1602,6 +1681,7 @@
             const step = _timerState.steps[_timerState.stepIdx];
 
             if (step.done) { closeTimer(); return; }
+            if (step.drainChoice) { return; } // drain handled by drain-specific buttons
             if (step.action) { advanceTimerStep(); return; }
 
             // Timed step -- start the countdown on first press
@@ -1620,6 +1700,39 @@
                     }
                 }, 1000);
             }
+        }
+
+        // ── Drain Timer helpers ───────────────────────────────────────────────
+
+        function drainAndDone() {
+            // No stopwatch -- advance straight to Done
+            advanceTimerStep();
+        }
+
+        function drainAndTimeIt() {
+            // Start drain stopwatch
+            _timerState.drainStartTime = Date.now();
+            _timerState.drainInterval = setInterval(() => {
+                renderTimerStep();
+            }, 1000);
+            renderTimerStep();
+        }
+
+        function stopDrainTimer() {
+            if (!_timerState || _timerState.drainStartTime === null) return;
+            clearInterval(_timerState.drainInterval);
+            _timerState.drainInterval = null;
+            const elapsed = Math.floor((Date.now() - _timerState.drainStartTime) / 1000);
+            _timerState._drainTimedResult = elapsed;
+            // Save to log entry
+            _timerState.logEntry.drainTimeSec = elapsed;
+            saveBeans();
+            renderTimerStep();
+        }
+
+        function advanceFromDrain() {
+            _timerState._drainTimedResult = undefined;
+            advanceTimerStep();
         }
 
         // ── Wake Lock ─────────────────────────────────────────────────────────
@@ -1690,7 +1803,7 @@
             // Close timer without opening recipe card + history
             releaseWakeLock();
             document.getElementById('timer-overlay').classList.remove('strobe');
-            if (_timerState) { clearInterval(_timerState.interval); _timerState = null; }
+            if (_timerState) { clearInterval(_timerState.interval); clearInterval(_timerState.drainInterval); _timerState = null; }
             document.getElementById('timer-overlay').classList.add('hidden');
         }
 
@@ -1699,6 +1812,7 @@
             document.getElementById('timer-overlay').classList.remove('strobe');
             if (_timerState) {
                 clearInterval(_timerState.interval);
+                clearInterval(_timerState.drainInterval);
                 // Show recipe card with updated brew history
                 showRecipe(_timerState.bean);
                 setTimeout(() => {
@@ -1905,6 +2019,7 @@
                     <div class="unified-brew-meta">
                         <span class="unified-brew-tag">${b.ratio || '—'}</span>
                         <span class="unified-brew-tag">grind ${b.grindUsed}</span>
+                        ${b.drainTimeSec != null ? `<span class="unified-brew-tag" style="background:rgba(80,200,120,0.08); border-color:rgba(80,200,120,0.2); color:rgba(80,200,120,0.8);">drain ${b.drainTimeSec}s</span>` : ''}
                     </div>
                     ${notesSection}
                 </div>`;
@@ -1957,7 +2072,7 @@
 
             const savedGrind = bean.grindSetting;
             bean.grindSetting = log.grindUsed;
-            const adj = await getAdjustments(notes, bean, log.ratio || '24/400');
+            const adj = await getAdjustments(notes, bean, log.ratio || '24/400', log.drainTimeSec ?? null);
             bean.grindSetting = savedGrind;
 
             log.notes = notes;
@@ -1990,7 +2105,7 @@
             const btn = document.querySelector(`#uh-notes-form-${beanId}-${logIdx} .btn-ghost`);
             if (btn) { btn.textContent = 'Analyzing...'; btn.disabled = true; }
 
-            const adj = await getAdjustments(notes, bean, log.ratio || '24/400');
+            const adj = await getAdjustments(notes, bean, log.ratio || '24/400', log.drainTimeSec ?? null);
             log.notes = notes;
             log.adjustments = adj;
             if (adj.newGrind !== null && adj.newGrind !== bean.grindSetting) {

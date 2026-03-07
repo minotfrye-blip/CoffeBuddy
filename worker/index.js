@@ -85,14 +85,18 @@ Respond ONLY with a JSON object, no markdown, no backticks, no preamble:
 }`;
 }
 
-function buildBrewAnalysisPrompt(bean, ratio, notes) {
+function buildBrewAnalysisPrompt(bean, ratio, notes, drainTimeSec) {
   const brewHistory = bean.brewLogs && bean.brewLogs.length > 0
     ? bean.brewLogs.slice(-4).map(l =>
-        `- ${new Date(l.date).toLocaleDateString()}: grind ${l.grindUsed}, ratio ${l.ratio}, notes: "${l.notes}"`
+        `- ${new Date(l.date).toLocaleDateString()}: grind ${l.grindUsed}, ratio ${l.ratio}, notes: "${l.notes}"${l.drainTimeSec != null ? `, drain ${l.drainTimeSec}s` : ''}`
       ).join("\n")
     : "No previous brews logged.";
 
   const ratioDisplay = bean.ratio ? `${bean.ratio} g/L (AI-generated for this bean)` : ratio;
+
+  const drainNote = drainTimeSec != null
+    ? `Drain time this brew: ${drainTimeSec}s (target range for a well-dialed Clever Dripper is 35–55s; under 35s suggests grind may be too coarse, over 60s suggests grind may be too fine)`
+    : "Drain time: not recorded";
 
   return `You are a precise coffee dialing assistant helping a home barista refine their Clever Dripper brews using the Hoffmann method.
 
@@ -104,6 +108,7 @@ Water temp: just off boil (205-212°F / 96-100°C) — this is fixed, do not sug
 Steep time: ${bean.steepMin} min
 Brew ratio: ${ratioDisplay}
 Ratio used this brew: ${ratio}
+${drainNote}
 
 Recent brew history for context:
 ${brewHistory}
@@ -127,7 +132,7 @@ Respond ONLY with a valid JSON object, no markdown, no backticks, no preamble:
   "grindConfidence": <integer 0–100, your confidence in the grind recommendation>,
   "tempAdjust": null,
   "timeAdjust": "<steep time suggestion, or null>",
-  "rationale": "1–2 sentences explaining the reasoning, referencing the bean and history if relevant",
+  "rationale": "1–2 sentences explaining the reasoning, referencing the bean, drain time if available, and history if relevant",
   "keepSetting": <true only if the brew was clearly well-extracted and no changes needed>
 }`;
 }
@@ -201,12 +206,14 @@ async function handleAnalyzeBrew(body, env) {
     return jsonError("Missing bean, notes, or ratio", 400, env);
   }
 
+  const drainTimeSec = (typeof body.drainTimeSec === 'number') ? body.drainTimeSec : null;
+
   const anthropicBody = {
     model: MODEL,
     max_tokens: 1000,
     messages: [{
       role: "user",
-      content: buildBrewAnalysisPrompt(body.bean, body.ratio, body.notes),
+      content: buildBrewAnalysisPrompt(body.bean, body.ratio, body.notes, drainTimeSec),
     }],
   };
 
