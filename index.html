@@ -28,6 +28,77 @@
             --radius-pill: 999px;
         }
 
+        /* ── Font size tiers ── */
+        /* M (~15% up) */
+        body.font-m { font-size: 16px; }
+        body.font-m input, body.font-m select, body.font-m textarea { font-size: 15px; }
+        body.font-m .bean-name { font-size: 16px; }
+        body.font-m .bean-details { font-size: 12px; }
+        body.font-m .bean-setting { font-size: 13px; }
+        body.font-m .brew-count { font-size: 11px; }
+        body.font-m .recipe-label { font-size: 14px; }
+        body.font-m .recipe-value { font-size: 14px; }
+        body.font-m .brew-step { font-size: 15px; }
+        body.font-m .brew-log-notes { font-size: 14px; }
+        body.font-m .brew-log-date, body.font-m .brew-log-grind { font-size: 12px; }
+        body.font-m .brew-log-analysis { font-size: 13px; }
+        body.font-m .unified-brew-bean { font-size: 15px; }
+        body.font-m .unified-brew-date, body.font-m .unified-brew-tag { font-size: 12px; }
+        body.font-m .stat-value { font-size: 28px; }
+        body.font-m .stat-sub { font-size: 12px; }
+        body.font-m .timer-display { font-size: 88px; }
+        body.font-m .timer-instruction { font-size: 17px; }
+        body.font-m .size-option-label { font-size: 16px; }
+        body.font-m .size-option-detail { font-size: 13px; }
+        /* L (~30% up) */
+        body.font-l { font-size: 18px; }
+        body.font-l input, body.font-l select, body.font-l textarea { font-size: 17px; }
+        body.font-l .bean-name { font-size: 18px; }
+        body.font-l .bean-details { font-size: 14px; }
+        body.font-l .bean-setting { font-size: 15px; }
+        body.font-l .brew-count { font-size: 13px; }
+        body.font-l .recipe-label { font-size: 16px; }
+        body.font-l .recipe-value { font-size: 16px; }
+        body.font-l .brew-step { font-size: 17px; }
+        body.font-l .brew-log-notes { font-size: 16px; }
+        body.font-l .brew-log-date, body.font-l .brew-log-grind { font-size: 14px; }
+        body.font-l .brew-log-analysis { font-size: 15px; }
+        body.font-l .unified-brew-bean { font-size: 17px; }
+        body.font-l .unified-brew-date, body.font-l .unified-brew-tag { font-size: 14px; }
+        body.font-l .stat-value { font-size: 32px; }
+        body.font-l .stat-sub { font-size: 14px; }
+        body.font-l .stat-label { font-size: 13px; }
+        body.font-l .timer-display { font-size: 100px; }
+        body.font-l .timer-instruction { font-size: 20px; }
+        body.font-l .grind-callout-text { font-size: 14px; }
+        body.font-l .grind-last-updated { font-size: 14px; }
+        body.font-l .size-option-label { font-size: 18px; }
+        body.font-l .size-option-detail { font-size: 15px; }
+        /* XL (~50% up) */
+        body.font-xl { font-size: 21px; }
+        body.font-xl input, body.font-xl select, body.font-xl textarea { font-size: 20px; }
+        body.font-xl .bean-name { font-size: 21px; }
+        body.font-xl .bean-details { font-size: 16px; }
+        body.font-xl .bean-setting { font-size: 17px; }
+        body.font-xl .brew-count { font-size: 15px; }
+        body.font-xl .recipe-label { font-size: 18px; }
+        body.font-xl .recipe-value { font-size: 18px; }
+        body.font-xl .brew-step { font-size: 19px; }
+        body.font-xl .brew-log-notes { font-size: 19px; }
+        body.font-xl .brew-log-date, body.font-xl .brew-log-grind { font-size: 16px; }
+        body.font-xl .brew-log-analysis { font-size: 17px; }
+        body.font-xl .unified-brew-bean { font-size: 20px; }
+        body.font-xl .unified-brew-date, body.font-xl .unified-brew-tag { font-size: 16px; }
+        body.font-xl .stat-value { font-size: 38px; }
+        body.font-xl .stat-sub { font-size: 16px; }
+        body.font-xl .stat-label { font-size: 14px; }
+        body.font-xl .timer-display { font-size: 116px; }
+        body.font-xl .timer-instruction { font-size: 23px; }
+        body.font-xl .grind-callout-text { font-size: 16px; }
+        body.font-xl .grind-last-updated { font-size: 16px; }
+        body.font-xl .size-option-label { font-size: 21px; }
+        body.font-xl .size-option-detail { font-size: 17px; }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -732,6 +803,16 @@
             <div id="my-beans" class="tab-content">
                 <div class="section-title">My Coffee Collection</div>
                 <div id="beans-list" class="bean-grid"></div>
+                <div style="text-align:center; padding: 28px 0 8px;">
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.5;">text size:</span>
+                    <button id="font-s-btn-mybeans" onclick="setFontSize('s')" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.4; margin-left:6px; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="restoreFontBtnOpacity('s','mybeans')">S</button>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); opacity:0.3; margin:0 2px;">/</span>
+                    <button id="font-m-btn-mybeans" onclick="setFontSize('m')" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.4; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="restoreFontBtnOpacity('m','mybeans')">M</button>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); opacity:0.3; margin:0 2px;">/</span>
+                    <button id="font-l-btn-mybeans" onclick="setFontSize('l')" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.4; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="restoreFontBtnOpacity('l','mybeans')">L</button>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); opacity:0.3; margin:0 2px;">/</span>
+                    <button id="font-xl-btn-mybeans" onclick="setFontSize('xl')" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.4; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="restoreFontBtnOpacity('xl','mybeans')">XL</button>
+                </div>
             </div>
 
             <div id="brew-log" class="tab-content">
@@ -741,7 +822,17 @@
                 <div class="section-title" style="margin-top: 32px;">All Brews</div>
                 <div id="unified-brew-history"></div>
 
-                <div style="text-align:center; padding: 40px 0 16px;">
+                <div style="text-align:center; padding: 16px 0 0;">
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.5;">text size:</span>
+                    <button id="font-s-btn-history" onclick="setFontSize('s')" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.4; margin-left:6px; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="restoreFontBtnOpacity('s','history')">S</button>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); opacity:0.3; margin:0 2px;">/</span>
+                    <button id="font-m-btn-history" onclick="setFontSize('m')" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.4; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="restoreFontBtnOpacity('m','history')">M</button>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); opacity:0.3; margin:0 2px;">/</span>
+                    <button id="font-l-btn-history" onclick="setFontSize('l')" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.4; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="restoreFontBtnOpacity('l','history')">L</button>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--white-dim); opacity:0.3; margin:0 2px;">/</span>
+                    <button id="font-xl-btn-history" onclick="setFontSize('xl')" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.4; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="restoreFontBtnOpacity('xl','history')">XL</button>
+                </div>
+                <div style="text-align:center; padding: 16px 0 16px;">
                     <button onclick="resetApp()" style="background:none; border:none; cursor:pointer; font-family:var(--font-mono); font-size:11px; color:var(--white-dim); letter-spacing:0.06em; opacity:0.5; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">reset all data</button>
                 </div>
             </div>
@@ -818,6 +909,14 @@
         let currentRecipe = null;
         let pendingPhoto = null;
 
+        // Apply saved font size immediately to avoid flash
+        (function() {
+            const saved = localStorage.getItem('bb-font-size');
+            if (saved === 'm') document.body.classList.add('font-m');
+            else if (saved === 'l') document.body.classList.add('font-l');
+            else if (saved === 'xl') document.body.classList.add('font-xl');
+        })();
+
         // ── CONFIGURE THIS ──────────────────────────────────────
         // Your Cloudflare Worker URL (no trailing slash).
         // e.g., https://coffee-assistant.YOUR-SUBDOMAIN.workers.dev
@@ -837,10 +936,40 @@
             return Math.round(water * r / 1000);
         }
 
+        const FONT_SIZES = ['s', 'm', 'l', 'xl'];
+
+        function setFontSize(size) {
+            FONT_SIZES.forEach(s => document.body.classList.remove('font-' + s));
+            if (size !== 's') {
+                document.body.classList.add('font-' + size);
+                localStorage.setItem('bb-font-size', size);
+            } else {
+                localStorage.removeItem('bb-font-size');
+            }
+            updateFontBtnStyles();
+        }
+
+        function updateFontBtnStyles() {
+            const saved = localStorage.getItem('bb-font-size') || 's';
+            FONT_SIZES.forEach(s => {
+                // buttons exist in both tabs, IDs suffixed with tab name
+                ['history', 'mybeans'].forEach(tab => {
+                    const btn = document.getElementById(`font-${s}-btn-${tab}`);
+                    if (btn) btn.style.opacity = (saved === s) ? '1' : '0.4';
+                });
+            });
+        }
+
+        function restoreFontBtnOpacity(size, tab) {
+            const saved = localStorage.getItem('bb-font-size') || 's';
+            const btn = document.getElementById(`font-${size}-btn-${tab}`);
+            if (btn) btn.style.opacity = (saved === size) ? '1' : '0.4';
+        }
+
         window.onload = function() {
             loadBeans();
             renderBeansList();
-            
+            updateFontBtnStyles();
         };
 
         function loadBeans() {
