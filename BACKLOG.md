@@ -4,6 +4,7 @@
 
 | ID | Type | Summary |
 |----|------|---------|
+| BB-014 | Bug | "Stop Timer" on drain step closes timer without saving brew or advancing to Done |
 
 ## Open Features
 
@@ -11,6 +12,7 @@
 |----|------|---------|
 | BB-006 | Feature | Persistent storage beyond localStorage |
 | BB-012 | Feature | Multi-method brew support (V60, French Press, Aeropress + existing Clever Dripper) |
+| BB-013 | Feature | Font size toggle (small / large) persisted in localStorage, accessible at bottom of app |
 
 ---
 
