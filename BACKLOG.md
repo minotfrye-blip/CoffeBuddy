@@ -4,7 +4,6 @@
 
 | ID | Type | Summary |
 |----|------|---------|
-| BB-014 | Bug | "Stop Timer" on drain step closes timer without saving brew or advancing to Done |
 
 ## Open Features
 
@@ -12,7 +11,7 @@
 |----|------|---------|
 | BB-006 | Feature | Persistent storage beyond localStorage |
 | BB-012 | Feature | Multi-method brew support (V60, French Press, Aeropress + existing Clever Dripper) |
-| BB-013 | Feature | Font size toggle (small / large) persisted in localStorage, accessible at bottom of app |
+| BB-015 | Feature | Edit logged brew (grind setting, ratio) with option to re-analyze or save as-is |
 
 ---
 
@@ -28,6 +27,8 @@
 | BB-007 | Feature | Refine Worker prompts with Hoffmann methodology (superseded by BB-010 + BB-011) | Mar 2026 |
 | BB-010 | Bug/Prompt | Prompts varied temp by roast level -- locked to just off boil for all beans | Mar 2026 |
 | BB-011 | Feature | AI-generated brew ratio (g/L) stored on bean, drives coffee dose for all sizes | Mar 2026 |
+| BB-013 | Feature | Font size toggle S/M/L/XL persisted in localStorage | Mar 2026 |
+| BB-014 | Bug | "Stop Timer" on drain step closes timer without saving brew or advancing to Done | Mar 2026 |
 
 ### Completed Features (pre-ID system)
 - Worker security hardening -- CORS locked to GitHub Pages domain, shared client secret added
